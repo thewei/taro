@@ -2,7 +2,7 @@ import {
   internal_safe_get as safeGet,
   internal_safe_set as safeSet
 } from '@tarojs/taro'
-
+import { componentTrigger } from './create-component'
 const privatePropKeyName = '_triggerObserer'
 export function updateComponent (component) {
   const { props } = component
@@ -32,6 +32,9 @@ export function updateComponent (component) {
     if (component.componentDidUpdate) {
       component.componentDidUpdate(prevProps, prevState)
     }
+    if (!component.__mounted) {
+      componentTrigger(component, 'componentWillMount')
+    }
     doUpdate(component)
   }
   component.prevProps = component.props
@@ -55,7 +58,7 @@ function doUpdate (component) {
     })
     data = _data
   }
-
+  // 改变这个私有的props用来触发(observer)子组件的更新
   data[privatePropKeyName] = !privatePropKeyVal
 
   component.$scope.setData(data, function () {
